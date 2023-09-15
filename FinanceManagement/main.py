@@ -17,7 +17,8 @@ async def main() -> None:
         print('3. To get the money owed : "query_money_owed [user]"')
         print('4. To get the most money owed: "query_most_money_owed"')
         print('5. To get the most debt: "query_most_debt"')
-        print('6. To quit: "exit"')
+        print('6. To import transaction via csv: "import [complete file path]"')
+        print('7. To quit: "exit"')
             
 
         try:
@@ -31,6 +32,7 @@ async def main() -> None:
             if command == 'add_transaction':
                 from_person, to_person, amount = input_list[1], input_list[2], int(input_list[3])
                 await financial_system.add_transaction(from_person, to_person, amount)
+                print("Transaction saved successfully")
             elif command == 'query_debt':
                 person = input_list[1]
                 debt = await financial_system.query_debt(person)
@@ -45,6 +47,9 @@ async def main() -> None:
             elif command == 'query_most_debt':
                 person = await financial_system.query_most_debt()
                 print(f"Person with the most debt: {person}")
+            elif command == 'import':
+                await financial_system.import_transaction_from_csv(input_list[1])
+                print("Data imported successfully")
             elif command == 'exit':
                 break
             else:

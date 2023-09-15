@@ -1,9 +1,41 @@
-from prisma import Prisma
+import csv
 
+from prisma import Prisma
 
 class FinancialSystem:
     def __init__(self):
         self.individuals = {}
+
+    # Function to import transactions via csv
+    async def import_transaction_from_csv(self, file_path):
+        print("🚀 ~ file: FinanceSystem.py:11 ~ file_path:", file_path)
+        try:
+            with open(file_path, 'r', newline='') as csvfile:
+                reader = csv.reader(csvfile)
+                db = Prisma()
+                await db.connect()
+                for row in reader:
+                    from_user = await db.user.find_unique(where={'username': row[0].strip()})
+                    to_user = await db.user.find_unique(where={'username': row[1].strip()})
+
+
+                    if not from_user :
+                        await db.user.create(data={'username': row[0].strip(), 'balance': 0-int(row[2])})
+                    else :
+                        await db.user.update(where={'username': row[0].strip()},data={'balance': from_user.balance - int(row[2])})
+
+                    if not to_user :
+                        await db.user.create(data={'username': row[1].strip(), 'balance': int(row[2])})
+                    else :
+                        await db.user.update(where={'username': row[1].strip()},data={'balance': to_user.balance + int(row[2])})
+
+                    await db.usertransaction.create(data={'from_user': row[0].strip(), 'to_user': row[1].strip(), 'amount': int(row[2])})
+                await db.disconnect()
+        except FileNotFoundError:
+            print(f"The file '{file_path}' was not found.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
 
     # Function to add a transaction.
     async def add_transaction(self, from_person, to_person, amount):
