@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: financeManagementPostgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"   # Map PostgreSQL port to the host machine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # Named volume for data persistence
+
+volumes:
+  postgres_data:
