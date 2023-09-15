@@ -8,7 +8,6 @@ class FinancialSystem:
 
     # Function to import transactions via csv
     async def import_transaction_from_csv(self, file_path):
-        print("🚀 ~ file: FinanceSystem.py:11 ~ file_path:", file_path)
         try:
             with open(file_path, 'r', newline='') as csvfile:
                 reader = csv.reader(csvfile)
@@ -70,18 +69,15 @@ class FinancialSystem:
 
         user = await db.user.find_unique(where={'username': person})
         
+        await db.disconnect()
+
         if not user:
             raise Exception("User not found")
         
-        money_received = await db.usertransaction.find_many(where={'from_user': person})
-        money_sent = await db.usertransaction.find_many(where={'to_user': person})
-
-        await db.disconnect()
-
-        total_amount_received = sum(list(map(lambda item: item.amount, money_received)))
-        total_amount_sent = sum(list(map(lambda item: item.amount, money_sent)))
-
-        return int(total_amount_received)-int(total_amount_sent)
+        if user.balance < 0:
+            return 0
+        
+        return user.balance
 
 
     # Function to query the total money owed to an individual.
@@ -91,19 +87,16 @@ class FinancialSystem:
         await db.connect()
 
         user = await db.user.find_unique(where={'username': person})
+
+        await db.disconnect()
         
         if not user:
             raise Exception("User not found")
         
-        money_received = await db.usertransaction.find_many(where={'from_user': person})
-        money_sent = await db.usertransaction.find_many(where={'to_user': person})
+        if user.balance > 0: 
+            return 0
 
-        await db.disconnect()
-
-        total_amount_received = sum(list(map(lambda item: item.amount, money_received)))
-        total_amount_sent = sum(list(map(lambda item: item.amount, money_sent)))
-
-        return int(total_amount_sent)-int(total_amount_received)
+        return abs(user.balance)
 
     # Function to identify the person with the most money owed.
     async def query_most_money_owed(self):
